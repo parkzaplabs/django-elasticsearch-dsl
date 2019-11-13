@@ -54,8 +54,11 @@ class BaseSignalProcessor(object):
         Given an individual model instance, update the object in the index.
         Update the related objects either.
         """
-        registry.update(instance)
-        registry.update_related(instance)
+        try:
+            registry.update(instance)
+            registry.update_related(instance)
+        except Exception as e:
+            return
 
     def handle_pre_delete(self, sender, instance, **kwargs):
         """Handle removing of instance object from related models instance.
