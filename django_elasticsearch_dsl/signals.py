@@ -10,6 +10,8 @@ from django.db import models
 
 from .registries import registry
 
+from django.conf import settings
+
 
 class BaseSignalProcessor(object):
     """Base signal processor.
@@ -54,10 +56,20 @@ class BaseSignalProcessor(object):
         Given an individual model instance, update the object in the index.
         Update the related objects either.
         """
+        """
+        Shivam - We need to check the elasticsearch server status before calling the update function,
+        to make it faster, otherwise it takes time to check connectionerror.
+        """
         try:
-            registry.update(instance)
-            registry.update_related(instance)
-        except Exception as e:
+            import requests
+            url = 'http://' + settings.ELASTICSEARCH_DSL['default']['hosts']
+            response = requests.get(url)
+            if response:
+                registry.update(instance)
+                registry.update_related(instance)
+            else:
+                return
+        except:
             return
 
     def handle_pre_delete(self, sender, instance, **kwargs):
